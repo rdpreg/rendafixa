@@ -21,6 +21,7 @@ taxa_atual = st.number_input("Taxa bruta atual (% a.a.)", min_value=0.0, value=9
 
 st.header("Dados do novo ativo (compra)")
 taxa_nova = st.number_input("Taxa bruta do novo ativo (% a.a.)", min_value=0.0, value=11.0, step=0.1)
+cupom_valor = st.number_input("Valor do cupom por pagamento (R$)", min_value=0.0, value=20.0, step=1.0)
 cupom_freq = st.selectbox("Frequência de pagamento de cupons", ["Mensal", "Trimestral", "Semestral", "Anual"])
 
 frequencia_meses = {"Mensal": 1, "Trimestral": 3, "Semestral": 6, "Anual": 12}
@@ -32,8 +33,10 @@ if st.button("Calcular tempo de recuperação"):
     st.subheader("Resultado da Simulação")
     st.markdown(f"- Deságio realizado: **R$ {desagio:,.2f}**")
 
-    if delta_taxa <= 0:
-        st.warning("A taxa do novo ativo é igual ou menor que a atual. Não compensa a troca.")
+    if taxa_nova <= 0:
+        st.warning("A taxa do novo ativo deve ser maior que zero.")
+    elif cupom_valor <= 0:
+        st.warning("Informe um valor de cupom maior que zero.")
     else:
         meses = 0
         saldo = 0.0
@@ -47,11 +50,12 @@ if st.button("Calcular tempo de recuperação"):
             meses += 1
             capital *= (1 + taxa_mensal)
             if meses == proximo_cupom:
-                saldo += capital * taxa_mensal * intervalo  # valor aproximado do cupom
+                saldo += cupom_valor
                 proximo_cupom += intervalo
 
         anos = round(meses / 12, 2)
 
+        st.markdown(f"- Valor do cupom: **R$ {cupom_valor:,.2f}**")
         st.markdown(f"- Frequência de pagamento: **{cupom_freq}**")
         st.markdown(f"- Tempo estimado para recuperar o deságio: **{anos} anos** ou **{meses} meses**")
 
