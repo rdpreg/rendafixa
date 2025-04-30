@@ -3,19 +3,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-# Ajustar layout com CSS
-st.markdown("""
-    <style>
-        .main .block-container {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-
 # === Funções auxiliares ===
 
 def formatar_valor(valor):
@@ -37,6 +24,7 @@ def formatar_moeda(valor):
         return valor
 
 # === Interface do usuário ===
+st.set_page_config(page_title="Ferramenta Crédito Privado", layout="wide")
 st.title("📊 Ferramenta de Avaliação de Crédito Privado")
 st.markdown("Faça o upload de uma planilha `.xlsx` com os dados da aba `Export` para começar.")
 
