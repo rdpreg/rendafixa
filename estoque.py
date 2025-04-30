@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
+# === Layout wide ===
+st.set_page_config(page_title="Ferramenta Crédito Privado", layout="wide")
+
 # === Funções auxiliares ===
 
 def formatar_valor(valor):
@@ -24,7 +27,6 @@ def formatar_moeda(valor):
         return valor
 
 # === Interface do usuário ===
-st.set_page_config(page_title="Ferramenta Crédito Privado", layout="wide")
 st.title("📊 Ferramenta de Avaliação de Crédito Privado")
 st.markdown("Faça o upload de uma planilha `.xlsx` com os dados da aba `Export` para começar.")
 
@@ -35,6 +37,11 @@ st.sidebar.header("🎯 Filtros de Análise")
 duration_max = st.sidebar.number_input("Duration máxima (anos):", value=0.0, step=0.1)
 roi_minimo = st.sidebar.number_input("ROI Anualizado mínimo (%):", value=0.0, step=0.1)
 rentabilidade_minima = st.sidebar.number_input("Rentabilidade mínima (%):", value=0.0, step=0.1)
+indexador_tipo = st.sidebar.selectbox(
+    "Indexador:",
+    options=["Todos", "CDI+", "IPCA+", "PRE"],
+    index=0
+)
 emissor_nome = st.sidebar.text_input("Nome do Emissor (parcial):")
 ativo_nome = st.sidebar.text_input("Nome do Ativo (parcial):")
 
@@ -95,13 +102,16 @@ if uploaded_file is not None:
     if rentabilidade_minima > 0:
         df_filtrado = df_filtrado[df_filtrado['Percentual Rentabilidade'] >= (rentabilidade_minima / 100)]
 
+    if indexador_tipo != "Todos":
+        df_filtrado = df_filtrado[df_filtrado['Indexador'].str.contains(indexador_tipo, case=False, na=False)]
+
     if emissor_nome:
         df_filtrado = df_filtrado[df_filtrado['Emissor'].str.contains(emissor_nome, case=False, na=False)]
 
     if ativo_nome:
         df_filtrado = df_filtrado[df_filtrado['Ativo'].str.contains(ativo_nome, case=False, na=False)]
 
-    # Formatar colunas para exibição
+    # Formatando colunas para exibição
     col_format_valores = ['Ágio ou Deságio', 'Valor Acumulado Proventos', 'Valor Total Mercado']
     for col in col_format_valores:
         df_filtrado[col] = df_filtrado[col].apply(formatar_valor)
@@ -111,7 +121,7 @@ if uploaded_file is not None:
     for col in col_format_taxas:
         df_filtrado[col] = df_filtrado[col].apply(formatar_taxa)
 
-    # Seleção final de colunas
+    # Seleção final de colunas (sem PU e Conta)
     colunas_final = [
         'Tipo', 'Emissor', 'Ativo', 'Indexador', 'Taxa Compra',
         'Data Aquisição',
