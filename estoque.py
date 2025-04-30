@@ -80,11 +80,9 @@ if uploaded_file is not None:
         np.nan
     )
     df['ROI Anualizado'] = df['ROI Anualizado Num'].apply(lambda x: f"{x * 100:.2f}".replace(".", ",") if pd.notnull(x) else "")
-
-    # Formatar data
     df['Data Aquisição'] = df['Data Aquisição'].dt.strftime('%d/%m/%Y')
 
-    # Filtros aplicados
+    # Aplicar filtros
     df_filtrado = df.copy()
 
     if duration_max > 0:
@@ -102,9 +100,8 @@ if uploaded_file is not None:
     if ativo_nome:
         df_filtrado = df_filtrado[df_filtrado['Ativo'].str.contains(ativo_nome, case=False, na=False)]
 
-    # Formatando colunas para exibição
-    col_format_valores = ['Valor PU Mercado', 'Valor PU Custo ', 'Valor PU Curva',
-                          'Ágio ou Deságio', 'Valor Acumulado Proventos', 'Valor Total Mercado']
+    # Formatar colunas para exibição
+    col_format_valores = ['Ágio ou Deságio', 'Valor Acumulado Proventos', 'Valor Total Mercado']
     for col in col_format_valores:
         df_filtrado[col] = df_filtrado[col].apply(formatar_valor)
 
@@ -115,8 +112,8 @@ if uploaded_file is not None:
 
     # Seleção final de colunas
     colunas_final = [
-        'Conta', 'Tipo', 'Emissor', 'Ativo', 'Indexador', 'Taxa Compra',
-        'Data Aquisição', 'Valor PU Mercado', 'Valor PU Custo ', 'Valor PU Curva',
+        'Tipo', 'Emissor', 'Ativo', 'Indexador', 'Taxa Compra',
+        'Data Aquisição',
         'Ágio ou Deságio', 'Percentual Ágio ou Deságio',
         'Valor Acumulado Proventos', 'Duration',
         'Rentabilidade', 'Percentual Rentabilidade', 'Percentual Carrego CDI',
@@ -125,16 +122,27 @@ if uploaded_file is not None:
 
     df_final = df_filtrado[colunas_final]
 
-    # Exibir resultado
-    st.subheader("🔍 Ativos selecionados:")
-    st.dataframe(df_final, use_container_width=True)
+    # === RESUMO FINAL ===
+    total_contas = df_final.shape[0]
+    total_ativos_unicos = df_final['Ativo'].nunique()
+    df_final['Valor Total Mercado Num'] = df_final['Valor Total Mercado'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False).astype(float)
+    volume_total = df_final['Valor Total Mercado Num'].sum()
 
-    # Download
+    st.subheader("📊 Resumo Final")
+    st.markdown(f"- **Total de contas para avaliar:** {total_contas}")
+    st.markdown(f"- **Total de ativos únicos:** {total_ativos_unicos}")
+    st.markdown(f"- **Volume financeiro total:** {formatar_moeda(volume_total)}")
+
+    # === TABELA ===
+    st.subheader("🔍 Ativos selecionados:")
+    st.dataframe(df_final.drop(columns=['Valor Total Mercado Num']), use_container_width=True)
+
+    # === DOWNLOAD ===
     def converter_para_excel(df):
         from io import BytesIO
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='Análise')
+            df.drop(columns=['Valor Total Mercado Num']).to_excel(writer, index=False, sheet_name='Análise')
         return output.getvalue()
 
     st.download_button(
@@ -143,12 +151,3 @@ if uploaded_file is not None:
         file_name="ativos_filtrados.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
-    # Resumo
-    total_ativos = df_final.shape[0]
-    df_final['Valor Total Mercado Num'] = df_final['Valor Total Mercado'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False).astype(float)
-    volume_total = df_final['Valor Total Mercado Num'].sum()
-
-    st.subheader("📊 Resumo Final")
-    st.markdown(f"- **Total de ativos para avaliar:** {total_ativos}")
-    st.markdown(f"- **Volume financeiro total:** {formatar_moeda(volume_total)}")
