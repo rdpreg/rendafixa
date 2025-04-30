@@ -1,7 +1,6 @@
 # === 1. Imports necessários ===
 import pandas as pd
-import ipywidgets as widgets
-from IPython.display import display
+import streamlit as st
 import io
 import numpy as np
 from datetime import datetime
