@@ -45,7 +45,7 @@ if uploaded_file is not None:
     df = pd.read_excel(uploaded_file, sheet_name='Export')
 
     # Filtro por tipo (CRA, CRI, Debêntures)
-    ativos_credito = ['Debênture', 'CRA', 'CRI']
+    ativos_credito = ['DEBENTURE', 'CRA', 'CRI']
     df = df[df['Tipo'].isin(ativos_credito)].copy()
 
     # Conversões de tipos
